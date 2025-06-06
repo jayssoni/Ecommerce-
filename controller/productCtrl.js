@@ -113,10 +113,53 @@ const getAllProduct = asyncHandler(async (req, res) => {
     }
 });
 
+const addToWishlist = asyncHandler(async (req, res) => {
+    const { productId } = req.body;
+    const userId = req.user._id;
+
+    try {
+        // Check if the product already exists in the user's wishlist
+        const existingProduct = await Product.findOne({ _id: productId, wishlist: userId });
+
+        if (existingProduct) {
+            return res.status(400).json({ message: "Product already in wishlist" });
+        }
+
+        // Add product to user's wishlist
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { $addToSet: { wishlist: userId } },
+            { new: true }
+        );
+
+        res.json(updatedProduct);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
+const removeFromWishlist = asyncHandler(async (req, res) => {
+    const { productId } = req.body;
+    const userId = req.user._id;
+
+    try {
+        // Remove product from user's wishlist
+        const updatedProduct = await Product.findByIdAndUpdate(
+            productId,
+            { $pull: { wishlist: userId } },
+            { new: true }
+        );
+
+        res.json(updatedProduct);
+    } catch (error) {
+        throw new Error(error);
+    }
+});
 module.exports = {
     createProduct,
     getaProduct,
     getAllProduct,
     updateProduct,
     deleteProduct,
+    addToWishlist,
+    removeFromWishlist
 };
